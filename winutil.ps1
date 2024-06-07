@@ -10,7 +10,7 @@
     Author         : Chris Titus @christitustech
     Runspace Author: @DeveloperDurp
     GitHub         : https://github.com/ChrisTitusTech
-    Version        : 24.06.06
+    Version        : 24.06.05
 #>
 param (
     [switch]$Debug,
@@ -47,7 +47,7 @@ Add-Type -AssemblyName System.Windows.Forms
 # Variable to sync between runspaces
 $sync = [Hashtable]::Synchronized(@{})
 $sync.PSScriptRoot = $PSScriptRoot
-$sync.version = "24.06.06"
+$sync.version = "24.06.05"
 $sync.configs = @{}
 $sync.ProcessRunning = $false
 
@@ -525,24 +525,6 @@ Function Get-WinUtilToggleStatus {
             return $true
         }
     }
-    if($ToggleSwitch -eq "WPFToggleNumLock"){
-        $numlockvalue = (Get-ItemProperty -path 'HKCU:\Control Panel\Keyboard').InitialKeyboardIndicators
-        if($numlockvalue -eq 2){
-            return $true
-        }
-        else{
-            return $false
-        }
-    }
-    if($ToggleSwitch -eq "WPFToggleVerboseLogon"){
-        $VerboseStatusvalue = (Get-ItemProperty -path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System').VerboseStatus
-        if($VerboseStatusvalue -eq 1){
-            return $true
-        }
-        else{
-            return $false
-        }
-    }    
     if($ToggleSwitch -eq "WPFToggleShowExt"){
         $hideextvalue = (Get-ItemProperty -path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced').HideFileExt
         if($hideextvalue -eq 0){
@@ -551,45 +533,51 @@ Function Get-WinUtilToggleStatus {
         else{
             return $false
         }
-    }    
-    if($ToggleSwitch -eq "WPFToggleSnapWindow"){
-        $hidesnap = (Get-ItemProperty -path 'HKCU:\Control Panel\Desktop').WindowArrangementActive
-        if($hidesnap -eq 0){
-            return $false
-        }
-        else{
-            return $true
-        }
     }
-    if($ToggleSwitch -eq "WPFToggleSnapFlyout"){
-        $hidesnap = (Get-ItemProperty -path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced').EnableSnapAssistFlyout
-        if($hidesnap -eq 0){
-            return $false
-        }
-        else{
-            return $true
-        }
-    }    
-    if($ToggleSwitch -eq "WPFToggleSnapSuggestion"){
-        $hidesnap = (Get-ItemProperty -path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced').SnapAssist
-        if($hidesnap -eq 0){
-            return $false
-        }
-        else{
-            return $true
-        }
-    }        
-    if($ToggleSwitch -eq "WPFToggleMouseAcceleration"){
-        $MouseSpeed = (Get-ItemProperty -path 'HKCU:\Control Panel\Mouse').MouseSpeed
-        $MouseThreshold1 = (Get-ItemProperty -path 'HKCU:\Control Panel\Mouse').MouseThreshold1
-        $MouseThreshold2 = (Get-ItemProperty -path 'HKCU:\Control Panel\Mouse').MouseThreshold2
-
-        if($MouseSpeed -eq 1 -and $MouseThreshold1 -eq 6 -and $MouseThreshold2 -eq 10){
-            return $true
-        }
-        else{
-            return $false
-        }
+    if($ToggleSwitch -eq "WPFToggleThemes"){
+      $themesOff = (Get-ItemProperty -path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer').NoThemesTab
+      if($themesOff -eq 0){
+          return $true
+      }
+      else{
+          return $false
+      }
+    }
+    if($ToggleSwitch -eq "WPFToggleTaskButton"){
+      $taskView = (Get-ItemProperty -path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer').ShowTaskViewButton
+      if($taskView -eq 1){
+          return $true
+      }
+      else{
+          return $false
+      }
+    }  
+    if($ToggleSwitch -eq "WPFToggleLockScreenCustom"){
+      $tasklockscreen = (Get-ItemProperty -path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization').NoChangingLockScreen
+      if($tasklockscreen -eq 0){
+          return $true
+      }
+      else{
+          return $false
+      }
+    }  
+    if($ToggleSwitch -eq "WPFToggleColorCustom"){
+      $colorcustom = (Get-ItemProperty -path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System').NoDispAppearancePage
+      if($colorcustom -eq 0){
+          return $true
+      }
+      else{
+          return $false
+      }
+    }
+    if($ToggleSwitch -eq "WPFToggleTransparency"){
+      $Transparency = (Get-ItemProperty -path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize').EnableTransparency
+      if($Transparency -eq 1){
+          return $true
+      }
+      else{
+          return $false
+      }
     }
     if ($ToggleSwitch -eq "WPFToggleStickyKeys") {
         $StickyKeys = (Get-ItemProperty -path 'HKCU:\Control Panel\Accessibility\StickyKeys').Flags
@@ -602,12 +590,12 @@ Function Get-WinUtilToggleStatus {
     }
     if ($ToggleSwitch -eq "WPFToggleTaskbarWidgets") {
         $TaskbarWidgets = (Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced").TaskBarDa
-	if($TaskbarWidgets -eq 0) {
+	      if($TaskbarWidgets -eq 0) {
             return $false
-	}
-	else{
+	      }
+	      else{
             return $true
-	}
+	      }
     }
 }
 function Get-WinUtilVariables {
@@ -725,125 +713,7 @@ $Output = $("WPF"+$type+$name) -replace '[^a-zA-Z0-9]', ''
 return $Output
 
 }
-function Install-WinUtilChoco {
 
-    <#
-
-    .SYNOPSIS
-        Installs Chocolatey if it is not already installed
-
-    #>
-
-    try {
-        Write-Host "Checking if Chocolatey is Installed..."
-
-        if((Test-WinUtilPackageManager -choco) -eq "installed") {
-            return
-        }
-
-        Write-Host "Seems Chocolatey is not installed, installing now."
-        Set-ExecutionPolicy Bypass -Scope Process -Force; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) -ErrorAction Stop
-        powershell choco feature enable -n allowGlobalConfirmation
-
-    }
-    Catch {
-        Write-Host "===========================================" -Foregroundcolor Red
-        Write-Host "--     Chocolatey failed to install     ---" -Foregroundcolor Red
-        Write-Host "===========================================" -Foregroundcolor Red
-    }
-
-}
-function Install-WinUtilProgramChoco {
-    <#
-    .SYNOPSIS
-    Manages the provided programs using Chocolatey
-    
-    .PARAMETER ProgramsToInstall
-    A list of programs to manage
-    
-    .PARAMETER manage
-    The action to perform on the programs, can be either 'Installing' or 'Uninstalling'
-    
-    .NOTES
-    The triple quotes are required any time you need a " in a normal script block.
-    #>
-    
-    param(
-        [Parameter(Mandatory, Position=0)]
-        [PsCustomObject]$ProgramsToInstall,
-
-        [Parameter(Position=1)]
-        [String]$manage = "Installing"
-    )
-    
-    $x = 0
-    $count = $ProgramsToInstall.Count
-
-    # This check isn't really necessary, as there's a couple of checks before this Private Function gets called, but just to make sure ;)
-    if($count -le 0) {
-        throw "Private Function 'Install-WinUtilProgramChoco' expected Parameter 'ProgramsToInstall' to be of size 1 or greater, instead got $count,`nPlease double check your code and re-compile WinUtil."
-    }
-
-    Write-Progress -Activity "$manage Applications" -Status "Starting" -PercentComplete 0
-    Write-Host "==========================================="
-    Write-Host "--   Configuring Chocolatey pacakages   ---"
-    Write-Host "==========================================="
-    Foreach ($Program in $ProgramsToInstall){
-        Write-Progress -Activity "$manage Applications" -Status "$manage $($Program.choco) $($x + 1) of $count" -PercentComplete $($x/$count*100)
-        if($manage -eq "Installing"){
-            write-host "Starting install of $($Program.choco) with Chocolatey."
-            try{
-                $tryUpgrade = $false
-		$installOutputFilePath = "$env:TEMP\Install-WinUtilProgramChoco.install-command.output.txt"
-        New-Item -ItemType File -Path $installOutputFilePath
-		$chocoInstallStatus = $(Start-Process -FilePath "choco" -ArgumentList "install $($Program.choco) -y" -Wait -PassThru -RedirectStandardOutput $installOutputFilePath).ExitCode
-            if(($chocoInstallStatus -eq 0) -AND (Test-Path -Path $installOutputFilePath)) {
-                $keywordsFound = Get-Content -Path $installOutputFilePath | Where-Object {$_ -match "reinstall" -OR $_ -match "already installed"}
-		        if ($keywordsFound) {
-		            $tryUpgrade = $true
-		        }
-            }
-		# TODO: Implement the Upgrade part using 'choco upgrade' command, this will make choco consistent with WinGet, as WinGet tries to Upgrade when you use the install command.
-		if ($tryUpgrade) {
-		    throw "Automatic Upgrade for Choco isn't implemented yet, a feature to make it consistent with WinGet, the install command using choco simply failed because $($Program.choco) is already installed."
-		}
-		if(($chocoInstallStatus -eq 0) -AND ($tryUpgrade -eq $false)){
-                    Write-Host "$($Program.choco) installed successfully using Chocolatey."
-                    continue
-                } else {
-                    Write-Host "Failed to install $($Program.choco) using Chocolatey, Chocolatey output:`n`n$(Get-Content -Path $installOutputFilePath)."
-                }
-            } catch {
-                Write-Host "Failed to install $($Program.choco) due to an error: $_"
-            }
-        }
-
-	if($manage -eq "Uninstalling"){
-            write-host "Starting uninstall of $($Program.choco) with Chocolatey."
-            try{
-		$uninstallOutputFilePath = "$env:TEMP\Install-WinUtilProgramChoco.uninstall-command.output.txt"
-        New-Item -ItemType File -Path $uninstallOutputFilePath
-		$chocoUninstallStatus = $(Start-Process -FilePath "choco" -ArgumentList "uninstall $($Program.choco) -y" -Wait -PassThru).ExitCode
-		if($chocoUninstallStatus -eq 0){
-                    Write-Host "$($Program.choco) uninstalled successfully using Chocolatey."
-                    continue
-                } else {
-                    Write-Host "Failed to uninstall $($Program.choco) using Chocolatey, Chocolatey output:`n`n$(Get-Content -Path $uninstallOutputFilePath)."
-                }
-            } catch {
-                Write-Host "Failed to uninstall $($Program.choco) due to an error: $_"
-            }
-	}
-        $x++
-    }
-    Write-Progress -Activity "$manage Applications" -Status "Finished" -Completed
-
-    # Cleanup leftovers files
-    if(Test-Path -Path $installOutputFilePath){ Remove-Item -Path $installOutputFilePath }
-    if(Test-Path -Path $installOutputFilePath){ Remove-Item -Path $uninstallOutputFilePath }
-
-    return;
-}
 Function Install-WinUtilProgramWinget {
     
     <#
@@ -1928,79 +1798,6 @@ function Invoke-WinUtilGPU {
         }
     }
 }
-Function Invoke-WinUtilMouseAcceleration {
-    <#
-
-    .SYNOPSIS
-        Enables/Disables Mouse Acceleration
-
-    .PARAMETER DarkMoveEnabled
-        Indicates the current Mouse Acceleration State
-
-    #>
-    Param($MouseAccelerationEnabled)
-    Try{
-        if ($MouseAccelerationEnabled -eq $false){
-            Write-Host "Enabling Mouse Acceleration"
-            $MouseSpeed = 1
-            $MouseThreshold1 = 6
-            $MouseThreshold2 = 10
-        } 
-        else {
-            Write-Host "Disabling Mouse Acceleration"
-            $MouseSpeed = 0
-            $MouseThreshold1 = 0
-            $MouseThreshold2 = 0 
-            
-        }
-
-        $Path = "HKCU:\Control Panel\Mouse"
-        Set-ItemProperty -Path $Path -Name MouseSpeed -Value $MouseSpeed
-        Set-ItemProperty -Path $Path -Name MouseThreshold1 -Value $MouseThreshold1
-        Set-ItemProperty -Path $Path -Name MouseThreshold2 -Value $MouseThreshold2
-    }
-    Catch [System.Security.SecurityException] {
-        Write-Warning "Unable to set $Path\$Name to $Value due to a Security Exception"
-    }
-    Catch [System.Management.Automation.ItemNotFoundException] {
-        Write-Warning $psitem.Exception.ErrorRecord
-    }
-    Catch{
-        Write-Warning "Unable to set $Name due to unhandled exception"
-        Write-Warning $psitem.Exception.StackTrace
-    }
-}
-function Invoke-WinUtilNumLock {
-    <#
-    .SYNOPSIS
-        Disables/Enables NumLock on startup
-    .PARAMETER Enabled
-        Indicates whether to enable or disable Numlock on startup
-    #>
-    Param($Enabled)
-    Try{
-        if ($Enabled -eq $false){
-            Write-Host "Enabling Numlock on startup"
-            $value = 2
-        }
-        else {
-            Write-Host "Disabling Numlock on startup"
-            $value = 0
-        }
-        $Path = "HKU:\.Default\Control Panel\Keyboard"
-        Set-ItemProperty -Path $Path -Name InitialKeyboardIndicators -Value $value
-    }
-    Catch [System.Security.SecurityException] {
-        Write-Warning "Unable to set $Path\$Name to $Value due to a Security Exception"
-    }
-    Catch [System.Management.Automation.ItemNotFoundException] {
-        Write-Warning $psitem.Exception.ErrorRecord
-    }
-    Catch{
-        Write-Warning "Unable to set $Name due to unhandled exception"
-        Write-Warning $psitem.Exception.StackTrace
-    }
-}
 function Invoke-WinUtilScript {
     <#
 
@@ -2064,7 +1861,7 @@ function Invoke-WinUtilShowExt {
             $value = 0
         }
         else {
-            Write-Host "hiding file extensions"
+            Write-Host "Hiding file extensions"
             $value = 1
         }
         $Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
@@ -2081,104 +1878,166 @@ function Invoke-WinUtilShowExt {
         Write-Warning $psitem.Exception.StackTrace
     }
 }
-function Invoke-WinUtilSnapFlyout {
-    <#
-    .SYNOPSIS
-        Disables/Enables Snap Assist Flyout on startup
-    .PARAMETER Enabled
-        Indicates whether to enable or disable Snap Assist Flyout on startup
-    #>
-    Param($Enabled)
-    Try{
-        if ($Enabled -eq $false){
-            Write-Host "Enabling Snap Assist Flyout On startup"
-            $value = 1
-        }
-        else {
-            Write-Host "Disabling Snap Assist Flyout On startup"
-            $value = 0
-        }
-        # taskkill.exe /F /IM "explorer.exe"
-        $Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
-        taskkill.exe /F /IM "explorer.exe"
-        Set-ItemProperty -Path $Path -Name EnableSnapAssistFlyout -Value $value
-        Start-Process "explorer.exe"
-    }
-    Catch [System.Security.SecurityException] {
-        Write-Warning "Unable to set $Path\$Name to $Value due to a Security Exception"
-    }
-    Catch [System.Management.Automation.ItemNotFoundException] {
-        Write-Warning $psitem.Exception.ErrorRecord
-    }
-    Catch{
-        Write-Warning "Unable to set $Name due to unhandled exception"
-        Write-Warning $psitem.Exception.StackTrace
-    }
+function Invoke-WinUtilToggleThemes {
+  <#
+  .SYNOPSIS
+      Disables/Enables Themes
+  .PARAMETER Enabled
+      Indicates whether to enable or disable themes
+  #>
+  Param($Enabled)
+  Try{
+      if ($Enabled -eq $false){
+          Write-Host "Enabling Themes"
+          $value = 0
+      }
+      else {
+          Write-Host "Disabling Themes"
+          $value = 1
+      }
+      $Path = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer"
+      Set-ItemProperty -Path $Path -Name NoThemesTab -Value $value
+  }
+  Catch [System.Security.SecurityException] {
+      Write-Warning "Unable to set $Path\$Name to $Value due to a Security Exception"
+  }
+  Catch [System.Management.Automation.ItemNotFoundException] {
+      Write-Warning $psitem.Exception.ErrorRecord
+  }
+  Catch{
+      Write-Warning "Unable to set $Name due to unhandled exception"
+      Write-Warning $psitem.Exception.StackTrace
+  }
 }
-function Invoke-WinUtilSnapSuggestion {
-    <#
-    .SYNOPSIS
-        Disables/Enables Snap Assist Suggestions on startup
-    .PARAMETER Enabled
-        Indicates whether to enable or disable Snap Assist Suggestions on startup
-    #>
-    Param($Enabled)
-    Try{
-        if ($Enabled -eq $false){
-            Write-Host "Enabling Snap Assist Suggestion On startup"
-            $value = 1
-        }
-        else {
-            Write-Host "Disabling Snap Assist Suggestion On startup"
-            $value = 0
-        }
-        # taskkill.exe /F /IM "explorer.exe"
-        $Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
-        taskkill.exe /F /IM "explorer.exe"
-        Set-ItemProperty -Path $Path -Name SnapAssist -Value $value
-        Start-Process "explorer.exe"
-    }
-    Catch [System.Security.SecurityException] {
-        Write-Warning "Unable to set $Path\$Name to $Value due to a Security Exception"
-    }
-    Catch [System.Management.Automation.ItemNotFoundException] {
-        Write-Warning $psitem.Exception.ErrorRecord
-    }
-    Catch{
-        Write-Warning "Unable to set $Name due to unhandled exception"
-        Write-Warning $psitem.Exception.StackTrace
-    }
+function Invoke-WinUtilToggleTaskView {
+  <#
+ .SYNOPSIS
+      Toggles Task View
+  #>
+  Try{
+      $Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+      $Name = "ShowTaskViewButton"
+      
+      if (!(Test-Path $Path)) {
+          Write-Host "Creating registry key $Path"
+          New-Item -Path $Path -Force
+      }
+      
+      if (!(Get-ItemProperty -Path $Path -Name $Name -ErrorAction SilentlyContinue)) {
+          Write-Host "Creating registry value $Name with value 0"
+          New-ItemProperty -Path $Path -Name $Name -Value 0 -PropertyType DWORD -Force
+          $value = 0
+      } else {
+          $value = (Get-ItemProperty -Path $Path -Name $Name).$Name
+          $value = 1 - $value
+          Write-Host "Toggling Task View, new value: $value"
+      }
+      
+      Set-ItemProperty -Path $Path -Name $Name -Value $value
+  }
+  Catch [System.Security.SecurityException] {
+      Write-Warning "Unable to set $Path\$Name to $Value due to a Security Exception"
+  }
+  Catch [System.Management.Automation.ItemNotFoundException] {
+      Write-Warning $psitem.Exception.ErrorRecord
+  }
+  Catch{
+      Write-Warning "Unable to set $Name due to unhandled exception"
+      Write-Warning $psitem.Exception.StackTrace
+  }
 }
-function Invoke-WinUtilSnapWindow {
-    <#
-    .SYNOPSIS
-        Disables/Enables Snapping Windows on startup
-    .PARAMETER Enabled
-        Indicates whether to enable or disable Snapping Windows on startup
-    #>
-    Param($Enabled)
-    Try{
-        if ($Enabled -eq $false){
-            Write-Host "Enabling Snap Windows On startup | Relogin Required"
-            $value = 1
-        }
-        else {
-            Write-Host "Disabling Snap Windows On startup | Relogin Required"
-            $value = 0
-        }
-        $Path = "HKCU:\Control Panel\Desktop"
-        Set-ItemProperty -Path $Path -Name WindowArrangementActive -Value $value
-    }
-    Catch [System.Security.SecurityException] {
-        Write-Warning "Unable to set $Path\$Name to $Value due to a Security Exception"
-    }
-    Catch [System.Management.Automation.ItemNotFoundException] {
-        Write-Warning $psitem.Exception.ErrorRecord
-    }
-    Catch{
-        Write-Warning "Unable to set $Name due to unhandled exception"
-        Write-Warning $psitem.Exception.StackTrace
-    }
+function Invoke-WinUtilLockScreenCustom {
+  <#
+  .SYNOPSIS
+      Disables/Enables Lock Screen Customization
+  .PARAMETER Enabled
+      Indicates whether to enable or disable themes
+  #>
+  Param($Enabled)
+  Try{
+      if ($Enabled -eq $false){
+          Write-Host "Enabling Lock Screen Customization"
+          $value = 0
+      }
+      else {
+          Write-Host "Disabling Lock Screen Customization"
+          $value = 1
+      }
+      $Path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization"
+      Set-ItemProperty -Path $Path -Name NoChangingLockScreen -Value $value
+  }
+  Catch [System.Security.SecurityException] {
+      Write-Warning "Unable to set $Path\$Name to $Value due to a Security Exception"
+  }
+  Catch [System.Management.Automation.ItemNotFoundException] {
+      Write-Warning $psitem.Exception.ErrorRecord
+  }
+  Catch{
+      Write-Warning "Unable to set $Name due to unhandled exception"
+      Write-Warning $psitem.Exception.StackTrace
+  }
+}
+function Invoke-WinUtilColorCustom {
+  <#
+  .SYNOPSIS
+      Disables/Enables Color Customization
+  .PARAMETER Enabled
+      Indicates whether to enable or disable color customization
+  #>
+  Param($Enabled)
+  Try{
+      if ($Enabled -eq $false){
+          Write-Host "Enabling Color Customization"
+          $value = 0
+      }
+      else {
+          Write-Host "Disabling Color Customization"
+          $value = 1
+      }
+      $Path = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
+      Set-ItemProperty -Path $Path -Name NoDispAppearancePage -Value $value
+  }
+  Catch [System.Security.SecurityException] {
+      Write-Warning "Unable to set $Path\$Name to $Value due to a Security Exception"
+  }
+  Catch [System.Management.Automation.ItemNotFoundException] {
+      Write-Warning $psitem.Exception.ErrorRecord
+  }
+  Catch{
+      Write-Warning "Unable to set $Name due to unhandled exception"
+      Write-Warning $psitem.Exception.StackTrace
+  }
+}
+function Invoke-WinUtilTransparency {
+  <#
+  .SYNOPSIS
+      Disables/Enables Color Customization
+  .PARAMETER Enabled
+      Indicates whether to enable or disable color customization
+  #>
+  Param($Enabled)
+  Try{
+      if ($Enabled -eq $false){
+          Write-Host "Enabling Transparency"
+          $value = 1
+      }
+      else {
+          Write-Host "Disabling Transparency"
+          $value = 0
+      }
+      $Path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+      Set-ItemProperty -Path $Path -Name EnableTransparency -Value $value
+  }
+  Catch [System.Security.SecurityException] {
+      Write-Warning "Unable to set $Path\$Name to $Value due to a Security Exception"
+  }
+  Catch [System.Management.Automation.ItemNotFoundException] {
+      Write-Warning $psitem.Exception.ErrorRecord
+  }
+  Catch{
+      Write-Warning "Unable to set $Name due to unhandled exception"
+      Write-Warning $psitem.Exception.StackTrace
+  }
 }
 Function Invoke-WinUtilStickyKeys {
     <#
@@ -2341,37 +2200,6 @@ function Invoke-WinUtilTweaks {
             }
         }
 
-    }
-}
-function Invoke-WinUtilVerboseLogon {
-    <#
-    .SYNOPSIS
-        Disables/Enables VerboseLogon Messages
-    .PARAMETER Enabled
-        Indicates whether to enable or disable VerboseLogon messages
-    #>
-    Param($Enabled)
-    Try{
-        if ($Enabled -eq $false){
-            Write-Host "Enabling Verbose Logon Messages"
-            $value = 1
-        }
-        else {
-            Write-Host "Disabling Verbose Logon Messages"
-            $value = 0
-        }
-        $Path = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
-        Set-ItemProperty -Path $Path -Name VerboseStatus -Value $value
-    }
-    Catch [System.Security.SecurityException] {
-        Write-Warning "Unable to set $Path\$Name to $Value due to a Security Exception"
-    }
-    Catch [System.Management.Automation.ItemNotFoundException] {
-        Write-Warning $psitem.Exception.ErrorRecord
-    }
-    Catch{
-        Write-Warning "Unable to set $Name due to unhandled exception"
-        Write-Warning $psitem.Exception.StackTrace
     }
 }
 function Remove-WinUtilAPPX {
@@ -2932,21 +2760,6 @@ function Test-WinUtilPackageManager {
         }
     }
 
-    if ($choco) {
-        if ((Get-Command -Name choco -ErrorAction Ignore) -and ($chocoVersion = (Get-Item "$env:ChocolateyInstall\choco.exe" -ErrorAction Ignore).VersionInfo.ProductVersion)) {
-            Write-Host "===========================================" -ForegroundColor Green
-            Write-Host "---      Chocolatey is installed        ---" -ForegroundColor Green
-            Write-Host "===========================================" -ForegroundColor Green
-            Write-Host "Version: v$chocoVersion" -ForegroundColor White
-            $status = "installed"
-        } else {
-            Write-Host "===========================================" -ForegroundColor Red
-            Write-Host "---    Chocolatey is not installed      ---" -ForegroundColor Red
-            Write-Host "===========================================" -ForegroundColor Red
-            $status = "not-installed"
-        }
-    }
-
     return $status
 }
 Function Update-WinUtilProgramWinget {
@@ -3465,26 +3278,13 @@ Function Invoke-WPFFormVariables {
     #>
     #If ($global:ReadmeDisplay -ne $true) { Write-Host "If you need to reference this display again, run Get-FormVariables" -ForegroundColor Yellow; $global:ReadmeDisplay = $true }
 
-
+	Write-Host ""
     Write-Host ""
-    Write-Host "    CCCCCCCCCCCCCTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT   "
-    Write-Host " CCC::::::::::::CT:::::::::::::::::::::TT:::::::::::::::::::::T   "
-    Write-Host "CC:::::::::::::::CT:::::::::::::::::::::TT:::::::::::::::::::::T  "
-    Write-Host "C:::::CCCCCCCC::::CT:::::TT:::::::TT:::::TT:::::TT:::::::TT:::::T "
-    Write-Host "C:::::C       CCCCCCTTTTTT  T:::::T  TTTTTTTTTTTT  T:::::T  TTTTTT"
-    Write-Host "C:::::C                     T:::::T                T:::::T        "
-    Write-Host "C:::::C                     T:::::T                T:::::T        "
-    Write-Host "C:::::C                     T:::::T                T:::::T        "
-    Write-Host "C:::::C                     T:::::T                T:::::T        "
-    Write-Host "C:::::C                     T:::::T                T:::::T        "
-    Write-Host "C:::::C                     T:::::T                T:::::T        "
-    Write-Host "C:::::C       CCCCCC        T:::::T                T:::::T        "
-    Write-Host "C:::::CCCCCCCC::::C      TT:::::::TT            TT:::::::TT       "
-    Write-Host "CC:::::::::::::::C       T:::::::::T            T:::::::::T       "
-    Write-Host "CCC::::::::::::C         T:::::::::T            T:::::::::T       "
-    Write-Host "  CCCCCCCCCCCCC          TTTTTTTTTTT            TTTTTTTTTTT       "
+	Write-Host ""
     Write-Host ""
-    Write-Host "====Chris Titus Tech====="
+	Write-Host ""
+    Write-Host ""
+	Write-Host ""
     Write-Host "=====Windows Toolbox====="
 
     #====DEBUG GUI Elements====
@@ -4754,13 +4554,12 @@ function Invoke-WPFToggle {
 
         "WPFToggleDarkMode" {Invoke-WinUtilDarkMode -DarkMoveEnabled $(Get-WinUtilToggleStatus WPFToggleDarkMode)}
         "WPFToggleBingSearch" {Invoke-WinUtilBingSearch $(Get-WinUtilToggleStatus WPFToggleBingSearch)}
-        "WPFToggleNumLock" {Invoke-WinUtilNumLock $(Get-WinUtilToggleStatus WPFToggleNumLock)}
-        "WPFToggleVerboseLogon" {Invoke-WinUtilVerboseLogon $(Get-WinUtilToggleStatus WPFToggleVerboseLogon)}
         "WPFToggleShowExt" {Invoke-WinUtilShowExt $(Get-WinUtilToggleStatus WPFToggleShowExt)}
-        "WPFToggleSnapWindow" {Invoke-WinUtilSnapWindow $(Get-WinUtilToggleStatus WPFToggleSnapWindow)}
-        "WPFToggleSnapFlyout" {Invoke-WinUtilSnapFlyout $(Get-WinUtilToggleStatus WPFToggleSnapFlyout)}
-        "WPFToggleSnapSuggestion" {Invoke-WinUtilSnapSuggestion $(Get-WinUtilToggleStatus WPFToggleSnapSuggestion)}
-        "WPFToggleMouseAcceleration" {Invoke-WinUtilMouseAcceleration $(Get-WinUtilToggleStatus WPFToggleMouseAcceleration)}
+        "WPFToggleThemes" {Invoke-WinUtilToggleThemes $(Get-WinUtilToggleStatus WPFToggleThemes)}
+        "WPFToggleTaskButton" {Invoke-WinUtilToggleTaskView $(Get-WinUtilToggleStatus WPFToggleTaskButton)}
+        "WPFToggleLockScreenCustom" {Invoke-WinUtilLockScreenCustom $(Get-WinUtilToggleStatus WPFToggleLockScreenCustom)}
+        "WPFToggleColorCustom" {Invoke-WinUtilColorCustom $(Get-WinUtilToggleStatus WPFToggleColorCustom)}
+        "WPFToggleTransparency" {Invoke-WinUtilTransparency $(Get-WinUtilToggleStatus WPFToggleTransparency)}
         "WPFToggleStickyKeys" {Invoke-WinUtilStickyKeys $(Get-WinUtilToggleStatus WPFToggleStickyKeys)}
         "WPFToggleTaskbarWidgets" {Invoke-WinUtilTaskbarWidgets $(Get-WinUtilToggleStatus WPFToggleTaskbarWidgets)}
     }
@@ -10950,7 +10749,7 @@ $sync.configs.tweaks = '{
     ],
     "InvokeScript": [
       "
-      Write-Host \"Remove Copilot\"
+      Write-Host \"Remove Popilot\"
       dism /online /remove-package /package-name:Microsoft.Windows.Copilot  
       "
     ],
@@ -11518,22 +11317,6 @@ $sync.configs.tweaks = '{
     "Order": "a061_",
     "Type": "Toggle"
   },
-  "WPFToggleNumLock": {
-    "Content": "NumLock on Startup",
-    "Description": "Toggle the Num Lock key state when your computer starts.",
-    "category": "Customize Preferences",
-    "panel": "2",
-    "Order": "a062_",
-    "Type": "Toggle"
-  },
-  "WPFToggleVerboseLogon": {
-    "Content": "Verbose Logon Messages",
-    "Description": "Show detailed messages during the login process for troubleshooting and diagnostics.",
-    "category": "Customize Preferences",
-    "panel": "2",
-    "Order": "a063_",
-    "Type": "Toggle"
-  },
   "WPFToggleShowExt": {
     "Content": "Show File Extensions",
     "Description": "If enabled then File extensions (e.g., .txt, .jpg) are visible.",
@@ -11542,36 +11325,44 @@ $sync.configs.tweaks = '{
     "Order": "a064_",
     "Type": "Toggle"
   },
-  "WPFToggleSnapWindow": {
-    "Content": "Snap Window",
-    "Description": "If enabled you can align windows by dragging them. | Relogin Required",
+  "WPFToggleThemes": {
+    "Content": "Themes",
+    "Description": "If enabled then File extensions (e.g., .txt, .jpg) are visible.",
     "category": "Customize Preferences",
     "panel": "2",
     "Order": "a065_",
     "Type": "Toggle"
   },
-  "WPFToggleSnapFlyout": {
-    "Content": "Snap Assist Flyout",
-    "Description": "If enabled then Snap preview is disabled when maximize button is hovered.",
+  "WPFToggleTaskButton": {
+    "Content": "Task View Button",
+    "Description": "If enabled then File extensions (e.g., .txt, .jpg) are visible.",
     "category": "Customize Preferences",
     "panel": "2",
     "Order": "a066_",
     "Type": "Toggle"
   },
-  "WPFToggleSnapSuggestion": {
-    "Content": "Snap Assist Suggestion",
-    "Description": "If enabled then you will get suggestions to snap other applications in the left over spaces.",
+    "WPFToggleLockScreenCustom": {
+    "Content": "Lock Screen Customization",
+    "Description": "If enabled then File extensions (e.g., .txt, .jpg) are visible.",
     "category": "Customize Preferences",
     "panel": "2",
     "Order": "a067_",
     "Type": "Toggle"
   },
-  "WPFToggleMouseAcceleration": {
-    "Content": "Mouse Acceleration",
-    "Description": "If Enabled then Cursor movement is affected by the speed of your physical mouse movements.",
+  "WPFToggleColorCustom": {
+    "Content": "Color Customization",
+    "Description": "If enabled then File extensions (e.g., .txt, .jpg) are visible.",
     "category": "Customize Preferences",
     "panel": "2",
     "Order": "a068_",
+    "Type": "Toggle"
+  },
+  "WPFToggleTransparency": {
+    "Content": "Transparency",
+    "Description": "If enabled then File extensions (e.g., .txt, .jpg) are visible.",
+    "category": "Customize Preferences",
+    "panel": "2",
+    "Order": "a070_",
     "Type": "Toggle"
   },
   "WPFToggleStickyKeys": {
@@ -13978,32 +13769,28 @@ $inputXML =  '<Window x:Class="WinUtility.MainWindow"
 <CheckBox Name="WPFToggleBingSearch" Style="{StaticResource ColorfulToggleSwitchStyle}" Margin="2.5,0" HorizontalAlignment="Right"/>
 </DockPanel>
 <DockPanel LastChildFill="True">
-<Label Content="NumLock on Startup" ToolTip="Toggle the Num Lock key state when your computer starts." HorizontalAlignment="Left"/>
-<CheckBox Name="WPFToggleNumLock" Style="{StaticResource ColorfulToggleSwitchStyle}" Margin="2.5,0" HorizontalAlignment="Right"/>
-</DockPanel>
-<DockPanel LastChildFill="True">
-<Label Content="Verbose Logon Messages" ToolTip="Show detailed messages during the login process for troubleshooting and diagnostics." HorizontalAlignment="Left"/>
-<CheckBox Name="WPFToggleVerboseLogon" Style="{StaticResource ColorfulToggleSwitchStyle}" Margin="2.5,0" HorizontalAlignment="Right"/>
-</DockPanel>
-<DockPanel LastChildFill="True">
 <Label Content="Show File Extensions" ToolTip="If enabled then File extensions (e.g., .txt, .jpg) are visible." HorizontalAlignment="Left"/>
 <CheckBox Name="WPFToggleShowExt" Style="{StaticResource ColorfulToggleSwitchStyle}" Margin="2.5,0" HorizontalAlignment="Right"/>
 </DockPanel>
 <DockPanel LastChildFill="True">
-<Label Content="Snap Window" ToolTip="If enabled you can align windows by dragging them. | Relogin Required" HorizontalAlignment="Left"/>
-<CheckBox Name="WPFToggleSnapWindow" Style="{StaticResource ColorfulToggleSwitchStyle}" Margin="2.5,0" HorizontalAlignment="Right"/>
+<Label Content="Themes" ToolTip="If enabled then File extensions (e.g., .txt, .jpg) are visible." HorizontalAlignment="Left"/>
+<CheckBox Name="WPFToggleThemes" Style="{StaticResource ColorfulToggleSwitchStyle}" Margin="2.5,0" HorizontalAlignment="Right"/>
 </DockPanel>
 <DockPanel LastChildFill="True">
-<Label Content="Snap Assist Flyout" ToolTip="If enabled then Snap preview is disabled when maximize button is hovered." HorizontalAlignment="Left"/>
-<CheckBox Name="WPFToggleSnapFlyout" Style="{StaticResource ColorfulToggleSwitchStyle}" Margin="2.5,0" HorizontalAlignment="Right"/>
+<Label Content="Lock Screen Customization" ToolTip="If enabled then File extensions (e.g., .txt, .jpg) are visible." HorizontalAlignment="Left"/>
+<CheckBox Name="WPFToggleLockScreenCustom" Style="{StaticResource ColorfulToggleSwitchStyle}" Margin="2.5,0" HorizontalAlignment="Right"/>
 </DockPanel>
 <DockPanel LastChildFill="True">
-<Label Content="Snap Assist Suggestion" ToolTip="If enabled then you will get suggestions to snap other applications in the left over spaces." HorizontalAlignment="Left"/>
-<CheckBox Name="WPFToggleSnapSuggestion" Style="{StaticResource ColorfulToggleSwitchStyle}" Margin="2.5,0" HorizontalAlignment="Right"/>
+<Label Content="Color Customization" ToolTip="If enabled then File extensions (e.g., .txt, .jpg) are visible." HorizontalAlignment="Left"/>
+<CheckBox Name="WPFToggleColorCustom" Style="{StaticResource ColorfulToggleSwitchStyle}" Margin="2.5,0" HorizontalAlignment="Right"/>
 </DockPanel>
 <DockPanel LastChildFill="True">
-<Label Content="Mouse Acceleration" ToolTip="If Enabled then Cursor movement is affected by the speed of your physical mouse movements." HorizontalAlignment="Left"/>
-<CheckBox Name="WPFToggleMouseAcceleration" Style="{StaticResource ColorfulToggleSwitchStyle}" Margin="2.5,0" HorizontalAlignment="Right"/>
+<Label Content="Transparency" ToolTip="If enabled then File extensions (e.g., .txt, .jpg) are visible." HorizontalAlignment="Left"/>
+<CheckBox Name="WPFToggleTransparency" Style="{StaticResource ColorfulToggleSwitchStyle}" Margin="2.5,0" HorizontalAlignment="Right"/>
+</DockPanel>
+<DockPanel LastChildFill="True">
+<Label Content="Task View" ToolTip="If enabled then File extensions (e.g., .txt, .jpg) are visible." HorizontalAlignment="Left"/>
+<CheckBox Name="WPFToggleTaskButton" Style="{StaticResource ColorfulToggleSwitchStyle}" Margin="2.5,0" HorizontalAlignment="Right"/>
 </DockPanel>
 <DockPanel LastChildFill="True">
 <Label Content="Taskbar Widgets" ToolTip="If Enabled then Widgets Icon in Taskbar will be shown." HorizontalAlignment="Left"/>
