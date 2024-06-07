@@ -579,6 +579,15 @@ Function Get-WinUtilToggleStatus {
           return $false
       }
     }
+    if($ToggleSwitch -eq "WPFToggleWallpaper"){
+      $Transparency = (Get-ItemProperty -path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\ActiveDesktop').NoChangingWallPaper
+      if($Transparency -eq 0){
+          return $true
+      }
+      else{
+          return $false
+      }
+    }
     if ($ToggleSwitch -eq "WPFToggleStickyKeys") {
         $StickyKeys = (Get-ItemProperty -path 'HKCU:\Control Panel\Accessibility\StickyKeys').Flags
         if($StickyKeys -eq 58){
@@ -2027,6 +2036,39 @@ function Invoke-WinUtilTransparency {
       }
       $Path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize"
       Set-ItemProperty -Path $Path -Name EnableTransparency -Value $value
+  }
+  Catch [System.Security.SecurityException] {
+      Write-Warning "Unable to set $Path\$Name to $Value due to a Security Exception"
+  }
+  Catch [System.Management.Automation.ItemNotFoundException] {
+      Write-Warning $psitem.Exception.ErrorRecord
+  }
+  Catch{
+      Write-Warning "Unable to set $Name due to unhandled exception"
+      Write-Warning $psitem.Exception.StackTrace
+  }
+}
+function Invoke-WinUtilWallpaper {
+  <#
+  .SYNOPSIS
+      Disables/Enables Wallpaper
+  .PARAMETER Enabled
+      Indicates whether to enable or disable wallpaper
+  #>
+  Param($Enabled)
+  Try{
+      if ($Enabled -eq $false){
+          Write-Host "Enabling Wallpaper"
+          $value = 0
+      }
+      else {
+          Write-Host "Disabling Wallpaper"
+          $value = 1
+      }
+      $Path = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\ActiveDesktop"
+      Set-ItemProperty -Path $Path -Name NoAddingComponents -Value $value
+      Set-ItemProperty -Path $Path -Name NoChangingWallPaper -Value $value
+      Set-ItemProperty -Path $Path -Name NoComponents -Value $value
   }
   Catch [System.Security.SecurityException] {
       Write-Warning "Unable to set $Path\$Name to $Value due to a Security Exception"
@@ -4560,6 +4602,7 @@ function Invoke-WPFToggle {
         "WPFToggleLockScreenCustom" {Invoke-WinUtilLockScreenCustom $(Get-WinUtilToggleStatus WPFToggleLockScreenCustom)}
         "WPFToggleColorCustom" {Invoke-WinUtilColorCustom $(Get-WinUtilToggleStatus WPFToggleColorCustom)}
         "WPFToggleTransparency" {Invoke-WinUtilTransparency $(Get-WinUtilToggleStatus WPFToggleTransparency)}
+        "WPFToggleWallpaper" {Invoke-WinUtilWallpaper $(Get-WinUtilToggleStatus WPFToggleWallpaper)}
         "WPFToggleStickyKeys" {Invoke-WinUtilStickyKeys $(Get-WinUtilToggleStatus WPFToggleStickyKeys)}
         "WPFToggleTaskbarWidgets" {Invoke-WinUtilTaskbarWidgets $(Get-WinUtilToggleStatus WPFToggleTaskbarWidgets)}
     }
@@ -11365,6 +11408,14 @@ $sync.configs.tweaks = '{
     "Order": "a070_",
     "Type": "Toggle"
   },
+  "WPFToggleWallpaper": {
+    "Content": "Toggle Wallpaper",
+    "Description": "If enabled then File extensions (e.g., .txt, .jpg) are visible.",
+    "category": "Customize Preferences",
+    "panel": "2",
+    "Order": "a071_",
+    "Type": "Toggle"
+  },
   "WPFToggleStickyKeys": {
     "Content": "Sticky Keys",
     "Description": "If Enabled then Sticky Keys is activated - Sticky keys is an accessibility feature of some graphical user interfaces which assists users who have physical disabilities or help users reduce repetitive strain injury.",
@@ -13787,6 +13838,10 @@ $inputXML =  '<Window x:Class="WinUtility.MainWindow"
 <DockPanel LastChildFill="True">
 <Label Content="Transparency" ToolTip="If enabled then File extensions (e.g., .txt, .jpg) are visible." HorizontalAlignment="Left"/>
 <CheckBox Name="WPFToggleTransparency" Style="{StaticResource ColorfulToggleSwitchStyle}" Margin="2.5,0" HorizontalAlignment="Right"/>
+</DockPanel>
+<DockPanel LastChildFill="True">
+<Label Content="Toggle Wallpaper" ToolTip="If enabled then File extensions (e.g., .txt, .jpg) are visible." HorizontalAlignment="Left"/>
+<CheckBox Name="WPFToggleWallpaper" Style="{StaticResource ColorfulToggleSwitchStyle}" Margin="2.5,0" HorizontalAlignment="Right"/>
 </DockPanel>
 <DockPanel LastChildFill="True">
 <Label Content="Task View" ToolTip="If enabled then File extensions (e.g., .txt, .jpg) are visible." HorizontalAlignment="Left"/>
