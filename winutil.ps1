@@ -7984,6 +7984,10 @@ $sync.configs.applications = '{
   }
 }' | convertfrom-json
 $sync.configs.dns = '{
+  "VJCG": {
+    "Primary": "158.180.58.52",
+    "Secondary": "192.168.1.1"
+  },
   "Google": {
     "Primary": "8.8.8.8",
     "Secondary": "8.8.4.4"
