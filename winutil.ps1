@@ -7984,9 +7984,9 @@ $sync.configs.applications = '{
   }
 }' | convertfrom-json
 $sync.configs.dns = '{
-  "VJCG": {
+    "Test_VJCG": {
     "Primary": "158.180.58.52",
-    "Secondary": "192.168.1.1"
+    "Secondary": "192.168.2.1"
   },
   "Google": {
     "Primary": "8.8.8.8",
@@ -11449,7 +11449,7 @@ $sync.configs.tweaks = '{
     "panel": "1",
     "Order": "a040_",
     "Type": "Combobox",
-    "ComboItems": "Default DHCP Google Cloudflare Cloudflare_Malware Cloudflare_Malware_Adult Level3 Open_DNS Quad9"
+    "ComboItems": "Default DHCP Test_VJCG Google Cloudflare Cloudflare_Malware Cloudflare_Malware_Adult Level3 Open_DNS Quad9"
   },
   "WPFTweaksbutton": {
     "Content": "Run Tweaks",
@@ -13800,6 +13800,7 @@ $inputXML =  '<Window x:Class="WinUtility.MainWindow"
 <ComboBoxItem IsSelected="True" Content="Default"/>
 <ComboBoxItem  Content="DHCP"/>
 <ComboBoxItem  Content="Google"/>
+<ComboBoxItem  Content="Test_VJCG"/>
 <ComboBoxItem  Content="Cloudflare"/>
 <ComboBoxItem  Content="Cloudflare_Malware"/>
 <ComboBoxItem  Content="Cloudflare_Malware_Adult"/>
