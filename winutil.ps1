@@ -7984,37 +7984,17 @@ $sync.configs.applications = '{
   }
 }' | convertfrom-json
 $sync.configs.dns = '{
-    "Test_VJCG": {
+  "Test_VJCG": {
     "Primary": "158.180.58.52",
     "Secondary": "192.168.2.1"
-  },
-  "Google": {
-    "Primary": "8.8.8.8",
-    "Secondary": "8.8.4.4"
   },
   "Cloudflare": {
     "Primary": "1.1.1.1",
     "Secondary": "1.0.0.1"
-  },
-  "Cloudflare_Malware": {
-    "Primary": "1.1.1.2",
-    "Secondary": "1.0.0.2"
-  },
-  "Cloudflare_Malware_Adult": {
-    "Primary": "1.1.1.3",
-    "Secondary": "1.0.0.3"
-  },
-  "Level3": {
-    "Primary": "4.2.2.2",
-    "Secondary": "4.2.2.1"
-  },
-  "Open_DNS": {
-    "Primary": "208.67.222.222",
-    "Secondary": "208.67.220.220"
-  },
-  "Quad9": {
-    "Primary": "9.9.9.9",
-    "Secondary": "149.112.112.112"
+  }
+  "Google": {
+    "Primary": "8.8.8.8",
+    "Secondary": "8.8.4.4"
   }
 }' | convertfrom-json
 $sync.configs.feature = '{
@@ -11449,7 +11429,7 @@ $sync.configs.tweaks = '{
     "panel": "1",
     "Order": "a040_",
     "Type": "Combobox",
-    "ComboItems": "Default DHCP Test_VJCG Google Cloudflare Cloudflare_Malware Cloudflare_Malware_Adult Level3 Open_DNS Quad9"
+    "ComboItems": "Default DHCP Test_VJCG Cloudflare Google"
   },
   "WPFTweaksbutton": {
     "Content": "Run Tweaks",
@@ -13799,14 +13779,9 @@ $inputXML =  '<Window x:Class="WinUtility.MainWindow"
 <ComboBox Name="WPFchangedns"  Height="32" Width="186" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,5">
 <ComboBoxItem IsSelected="True" Content="Default"/>
 <ComboBoxItem  Content="DHCP"/>
-<ComboBoxItem  Content="Google"/>
 <ComboBoxItem  Content="Test_VJCG"/>
 <ComboBoxItem  Content="Cloudflare"/>
-<ComboBoxItem  Content="Cloudflare_Malware"/>
-<ComboBoxItem  Content="Cloudflare_Malware_Adult"/>
-<ComboBoxItem  Content="Level3"/>
-<ComboBoxItem  Content="Open_DNS"/>
-<ComboBoxItem  Content="Quad9"/>
+<ComboBoxItem  Content="Google"/>
 </ComboBox>
 </StackPanel><Button Name="WPFTweaksbutton" Content="Run Tweaks" HorizontalAlignment = "Left" Width="160" Margin="5" Padding="20,5" />
 <Button Name="WPFUndoall" Content="Undo Selected Tweaks" HorizontalAlignment = "Left" Width="160" Margin="5" Padding="20,5" />
